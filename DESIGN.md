@@ -35,3 +35,6 @@
     * Multi-window view (both tiled and floating)
     * Configurable colorful syntax highlighting and text markings (virtual lines are a nice to have)
 
+## Notes for implementation
+
+* [Cross platform library to monitor file changes](https://hackage.haskell.org/package/fsnotif)
