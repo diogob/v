@@ -35,11 +35,11 @@ newtype St = St
 
 makeLenses ''St
 
-drawUI :: St -> [T.Widget Name]
-drawUI st = [ui]
+drawUI :: Int -> Int -> St -> [T.Widget Name]
+drawUI displayLines displayColumns st = [ui]
   where
     e = renderWithLineNumbers (st ^. edit)
-    ui = C.center $ hLimit 50 $ vLimit 10 e
+    ui = C.center $ hLimit displayColumns $ vLimit displayLines e
 
 -- | Given an editor, render the editor with line numbers to the left of
 -- the editor.
@@ -123,7 +123,7 @@ vAttributes =
 vEditor :: M.App St e Name
 vEditor =
   M.App
-    { M.appDraw = drawUI,
+    { M.appDraw = drawUI 100 200,
       M.appChooseCursor = const $ M.showCursorNamed Edit,
       M.appHandleEvent = event,
       M.appStartEvent = return (),
