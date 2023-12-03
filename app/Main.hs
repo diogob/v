@@ -76,11 +76,11 @@ drawUI displayLines displayColumns st = [ui]
 -- so I didn't do it here, but that would be the way to go for a Real
 -- Application.
 renderWithLineNumbers :: E.Editor String Name -> T.Widget Name
-renderWithLineNumbers e =
+renderWithLineNumbers editor =
   lineNumbersVp <+> editorVp
   where
     lineNumbersVp = hLimit (maxNumWidth + 1) $ viewport EditLines T.Vertical body
-    editorVp = E.renderEditor (str . unlines) True e
+    editorVp = E.renderEditor (str . unlines) True editor
     body = withDefAttr lineNumberAttr $ vBox numWidgets
     numWidgets = mkNumWidget <$> numbers
     mkNumWidget i = maybeVisible i $ str $ show i
@@ -90,9 +90,9 @@ renderWithLineNumbers e =
       | otherwise =
           id
     numbers = [1 .. h]
-    contents = E.getEditContents e
+    contents = E.getEditContents editor
     h = length contents
-    curLine = fst $ E.getCursorPosition e
+    curLine = fst $ E.getCursorPosition editor
     maxNumWidth = length $ show h
 
 event :: T.BrickEvent Name e -> T.EventM Name St ()
