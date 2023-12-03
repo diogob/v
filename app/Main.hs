@@ -23,6 +23,7 @@ import qualified Graphics.Vty as V
 import Lens.Micro
 import Lens.Micro.Mtl
 import Lens.Micro.TH
+import System.Environment (getArgs)
 
 data Name
   = Edit
@@ -100,9 +101,9 @@ event (T.VtyEvent (V.EvKey V.KEsc [])) =
 event ev = do
   zoom edit $ E.handleEditorEvent ev
 
-initialState :: St
-initialState =
-  St (E.editor Edit Nothing "")
+initialState :: String -> St
+initialState content =
+  St (E.editor Edit Nothing content)
 
 lineNumberAttr :: A.AttrName
 lineNumberAttr = A.attrName "lineNumber"
@@ -132,4 +133,8 @@ vEditor =
 
 main :: IO ()
 main = do
-  void $ M.defaultMain vEditor initialState
+  args <- getArgs
+  content <- case args of
+        [path] -> readFile path
+        _ -> pure ""
+  void $ M.defaultMain vEditor $ initialState content
