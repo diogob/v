@@ -38,3 +38,4 @@
 ## Notes for implementation
 
 * [Cross platform library to monitor file changes](https://hackage.haskell.org/package/fsnotif)
+* [Discussion on highlighting text in Brick](https://github.com/jtdaugherty/brick/issues/400)
