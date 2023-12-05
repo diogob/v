@@ -22,23 +22,23 @@ renderEditor :: (Ord n, Show n, Monoid t, TextWidth t, Z.GenericTextZipper t)
              -> Editor t n
              -- ^ The editor.
              -> Widget n
-renderEditor draw foc e =
+renderEditor draw foc editor =
     let cp = Z.cursorPosition z
-        z = e^.editContentsL
+        z = editor^.editContentsL
         toLeft = Z.take (cp^._2) (Z.currentLine z)
         cursorLoc = Location (textWidth toLeft, cp^._1)
-        limit = case e^.editContentsL.to Z.getLineLimit of
+        limit = case editor^.editContentsL.to Z.getLineLimit of
             Nothing -> id
             Just lim -> vLimit lim
-        atChar = charAtCursor $ e^.editContentsL
+        atChar = charAtCursor $ editor^.editContentsL
         atCharWidth = maybe 1 textWidth atChar
     in withAttr (if foc then editFocusedAttr else editAttr) $
        limit $
-       viewport (editorName e) Both $
-       (if foc then showCursor (editorName e) cursorLoc else id) $
+       viewport (editorName editor) Both $
+       (if foc then showCursor (editorName editor) cursorLoc else id) $
        visibleRegion cursorLoc (atCharWidth, 1) $
        draw $
-       getEditContents e
+       getEditContents editor
 
 -- private
 

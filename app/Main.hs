@@ -2,29 +2,32 @@
 
 module Main (main) where
 
+import Brick (Widget (Widget))
 import qualified Brick.AttrMap as A
 import qualified Brick.Main as M
 import qualified Brick.Types as T
 import Brick.Util (fg, on)
 import qualified Brick.Widgets.Center as C
 import Brick.Widgets.Core
-  ( hLimit,
+  ( hBox,
+    hLimit,
     str,
     vBox,
     vLimit,
     viewport,
     visible,
+    withAttr,
     withDefAttr,
     (<+>),
   )
 import qualified Brick.Widgets.Edit as E
 import Control.Monad (void)
+import qualified CustomEditor as C
 import qualified Graphics.Vty as V
 import Lens.Micro
 import Lens.Micro.Mtl
 import Lens.Micro.TH
 import System.Environment (getArgs)
-import qualified CustomEditor as C
 
 data Name
   = Edit
@@ -81,7 +84,17 @@ renderWithLineNumbers editor =
   lineNumbersVp <+> editorVp
   where
     lineNumbersVp = hLimit (maxNumWidth + 1) $ viewport EditLines T.Vertical body
-    editorVp = C.renderEditor (str . unlines) True editor
+    headerInDifferentColour :: [String] -> Widget Name
+    headerInDifferentColour li =
+      case li of
+        [] -> str ""
+        (title:rest) ->
+          vBox
+            [ withAttr (A.attrName "title") (str title),
+              str . unlines $ rest
+            ]
+
+    editorVp = C.renderEditor headerInDifferentColour True editor
     body = withDefAttr lineNumberAttr $ vBox numWidgets
     numWidgets = mkNumWidget <$> numbers
     mkNumWidget i = maybeVisible i $ str $ show i
@@ -117,9 +130,10 @@ vAttributes =
   A.attrMap
     V.defAttr
     [ (E.editAttr, V.white `on` V.blue),
-      (E.editFocusedAttr, V.black `on` V.yellow),
+      (E.editFocusedAttr, V.black `on` V.linearColor 100 100 100),
       (lineNumberAttr, fg V.cyan),
-      (currentLineNumberAttr, V.defAttr `V.withStyle` V.bold)
+      (currentLineNumberAttr, V.defAttr `V.withStyle` V.bold),
+      (A.attrName "title", fg V.red)
     ]
 
 vEditor :: M.App St e Name
@@ -136,6 +150,6 @@ main :: IO ()
 main = do
   args <- getArgs
   content <- case args of
-        [path] -> readFile path
-        _ -> pure ""
+    [path] -> readFile path
+    _ -> pure ""
   void $ M.defaultMain vEditor $ initialState content
