@@ -24,6 +24,7 @@ import Lens.Micro
 import Lens.Micro.Mtl
 import Lens.Micro.TH
 import System.Environment (getArgs)
+import qualified CustomEditor as C
 
 data Name
   = Edit
@@ -80,7 +81,7 @@ renderWithLineNumbers editor =
   lineNumbersVp <+> editorVp
   where
     lineNumbersVp = hLimit (maxNumWidth + 1) $ viewport EditLines T.Vertical body
-    editorVp = E.renderEditor (str . unlines) True editor
+    editorVp = C.renderEditor (str . unlines) True editor
     body = withDefAttr lineNumberAttr $ vBox numWidgets
     numWidgets = mkNumWidget <$> numbers
     mkNumWidget i = maybeVisible i $ str $ show i
