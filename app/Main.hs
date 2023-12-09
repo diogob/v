@@ -120,6 +120,7 @@ withHighlight (highlightAttribute, content) = withAttr (highlight highlightAttri
         Title -> A.attrName "title"
         Body -> A.attrName "body"
 
+-- perhaps we should create a monoid instance for this and create a TextZipper over it
 newtype HighlightedText = HighlightedText [(HighlightAttribute, String)]
 
 withHighlightedTitleFromString :: [String] -> [HighlightedText]
