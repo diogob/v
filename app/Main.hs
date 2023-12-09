@@ -23,9 +23,8 @@ import Brick.Widgets.Core
 import qualified Brick.Widgets.Edit as E
 import Control.Monad (void)
 import qualified CustomEditor as C
-import Data.List (singleton)
-import Data.Text (Text)
 import qualified Graphics.Vty as V
+import HighlightedText
 import Lens.Micro
 import Lens.Micro.Mtl
 import Lens.Micro.TH
@@ -107,8 +106,6 @@ renderWithLineNumbers editor =
     curLine = fst $ E.getCursorPosition editor
     maxNumWidth = length $ show h
 
-data HighlightAttribute = Title | Body
-
 highlightedLine :: HighlightedText -> Widget Name
 highlightedLine (HighlightedText content) = hBox $ withHighlight <$> content
 
@@ -119,16 +116,6 @@ withHighlight (highlightAttribute, content) = withAttr (highlight highlightAttri
       \case
         Title -> A.attrName "title"
         Body -> A.attrName "body"
-
--- perhaps we should create a monoid instance for this and create a TextZipper over it
-newtype HighlightedText = HighlightedText [(HighlightAttribute, String)]
-
-withHighlightedTitleFromString :: [String] -> [HighlightedText]
-withHighlightedTitleFromString =
-  \case
-    [] -> []
-    (title : body) ->
-      HighlightedText [(Title, title)] : (HighlightedText . singleton . (,) Body <$> body)
 
 event :: T.BrickEvent Name e -> T.EventM Name St ()
 event (T.VtyEvent (V.EvKey V.KEsc [])) =
