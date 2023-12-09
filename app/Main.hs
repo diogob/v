@@ -2,7 +2,7 @@
 
 module Main (main) where
 
-import Brick (Widget (Widget))
+import Brick (Size (..), Widget (Widget))
 import qualified Brick.AttrMap as A
 import qualified Brick.Main as M
 import qualified Brick.Types as T
@@ -23,6 +23,8 @@ import Brick.Widgets.Core
 import qualified Brick.Widgets.Edit as E
 import Control.Monad (void)
 import qualified CustomEditor as C
+import Data.List (singleton)
+import Data.Text (Text)
 import qualified Graphics.Vty as V
 import Lens.Micro
 import Lens.Micro.Mtl
@@ -84,17 +86,13 @@ renderWithLineNumbers editor =
   lineNumbersVp <+> editorVp
   where
     lineNumbersVp = hLimit (maxNumWidth + 1) $ viewport EditLines T.Vertical body
-    headerInDifferentColour :: [String] -> Widget Name
-    headerInDifferentColour li =
-      case li of
-        [] -> str ""
-        (title:rest) ->
-          vBox
-            [ withAttr (A.attrName "title") (str title),
-              str . unlines $ rest
-            ]
+    highlightTitle :: [String] -> Widget Name
+    highlightTitle li =
+      let highlightText = withHighlightedTitleFromString li
+          highlightedLines = highlightedLine <$> highlightText
+       in vBox highlightedLines
 
-    editorVp = C.renderEditor headerInDifferentColour True editor
+    editorVp = C.renderEditor highlightTitle True editor
     body = withDefAttr lineNumberAttr $ vBox numWidgets
     numWidgets = mkNumWidget <$> numbers
     mkNumWidget i = maybeVisible i $ str $ show i
@@ -108,6 +106,28 @@ renderWithLineNumbers editor =
     h = length contents
     curLine = fst $ E.getCursorPosition editor
     maxNumWidth = length $ show h
+
+data HighlightAttribute = Title | Body
+
+highlightedLine :: HighlightedText -> Widget Name
+highlightedLine (HighlightedText content) = hBox $ withHighlight <$> content
+
+withHighlight :: (HighlightAttribute, String) -> Widget Name
+withHighlight (highlightAttribute, content) = withAttr (highlight highlightAttribute) (str content)
+  where
+    highlight =
+      \case
+        Title -> A.attrName "title"
+        Body -> A.attrName "body"
+
+newtype HighlightedText = HighlightedText [(HighlightAttribute, String)]
+
+withHighlightedTitleFromString :: [String] -> [HighlightedText]
+withHighlightedTitleFromString =
+  \case
+    [] -> []
+    (title : body) ->
+      HighlightedText [(Title, title)] : (HighlightedText . singleton . (,) Body <$> body)
 
 event :: T.BrickEvent Name e -> T.EventM Name St ()
 event (T.VtyEvent (V.EvKey V.KEsc [])) =
