@@ -2,11 +2,11 @@ module HighlightedText
   ( HighlightedText (..),
     HighlightAttribute (..),
     withHighlightedTitleFromString,
-    highlightedZipper
+    highlightedZipper,
   )
 where
 
-import Data.List (singleton, foldl')
+import Data.List (foldl', singleton)
 import Data.String (IsString (..))
 import Data.Text.Zipper (TextZipper, mkZipper)
 
@@ -56,7 +56,7 @@ takeH toTake (HighlightedText ((highlight, content) : tailH))
   | otherwise = error "The guards above should cover all cases"
 
 lengthH :: HighlightedText -> Int
-lengthH (HighlightedText ht) = foldl' (\total (_,content) -> total + length content) 0 ht
+lengthH (HighlightedText ht) = foldl' (\total (_, content) -> total + length content) 0 ht
 
 lastH :: HighlightedText -> Char
 lastH (HighlightedText ht) = (last . snd . last) ht
@@ -69,11 +69,17 @@ initH (HighlightedText ht) = HighlightedText $ init ht <> [initLastPair $ last h
 nullH :: HighlightedText -> Bool
 nullH (HighlightedText ht) = null ht
 
--- linesH :: HighlightedText -> [HighlightedText]
--- linesH (HighlightedText ht) =
---   HighlightedText <$> undefined
---   where
---     contents = foldl' (\total (highlight,content) -> total <> ((,) highlight <$> lines content)) [] ht
+linesH :: HighlightedText -> [HighlightedText]
+linesH (HighlightedText ht) =
+  go ht []
+  where
+    go :: [(HighlightAttribute, String)] -> [HighlightedText] -> [HighlightedText]
+    go [] result = result
+    go ((highlight, content) : tailH) result
+      | null (lines content) = go tailH result
+      | length (lines content) == 1 = undefined
+      | length (lines content) > 1 = undefined
+      | otherwise = error "The guards above should cover all cases"
 
 -- highlightedZipper :: [HighlightedText] -> Maybe Int -> TextZipper HighlightedText
 highlightedZipper =
