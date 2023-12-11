@@ -1,14 +1,24 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module HighlightedText
   ( HighlightedText (..),
     HighlightAttribute (..),
     withHighlightedTitleFromString,
     highlightedZipper,
+    init,
+    last,
+    null,
+    length,
+    take,
+    drop,
   )
 where
 
 import Data.List (foldl', singleton)
 import Data.String (IsString (..))
 import Data.Text.Zipper (TextZipper, mkZipper)
+import Prelude hiding (drop, init, last, length, lines, null, take)
+import qualified Prelude as P
 
 data HighlightAttribute = Title | Body
   deriving (Show, Eq)
@@ -39,48 +49,42 @@ withHighlightedTitleFromString =
 fromChar :: Char -> HighlightedText
 fromChar c = fromString [c]
 
-dropH :: Int -> HighlightedText -> HighlightedText
-dropH _ (HighlightedText []) = HighlightedText []
-dropH toDrop (HighlightedText ((highlight, content) : tailH))
-  | length content == toDrop = HighlightedText tailH
-  | length content < toDrop = dropH (length content - toDrop) $ HighlightedText tailH
-  | length content > toDrop = HighlightedText ((highlight, drop toDrop content) : tailH)
+drop :: Int -> HighlightedText -> HighlightedText
+drop _ (HighlightedText []) = HighlightedText []
+drop toDrop (HighlightedText ((highlight, content) : tailH))
+  | P.length content == toDrop = HighlightedText tailH
+  | P.length content < toDrop = drop (P.length content - toDrop) $ HighlightedText tailH
+  | P.length content > toDrop = HighlightedText ((highlight, P.drop toDrop content) : tailH)
   | otherwise = error "The guards above should cover all cases"
 
-takeH :: Int -> HighlightedText -> HighlightedText
-takeH _ (HighlightedText []) = HighlightedText []
-takeH toTake (HighlightedText ((highlight, content) : tailH))
-  | length content == toTake = HighlightedText [(highlight, content)]
-  | length content < toTake = HighlightedText [(highlight, content)] <> takeH (length content - toTake) (HighlightedText tailH)
-  | length content > toTake = HighlightedText [(highlight, take toTake content)]
+take :: Int -> HighlightedText -> HighlightedText
+take _ (HighlightedText []) = HighlightedText []
+take toTake (HighlightedText ((highlight, content) : tailH))
+  | P.length content == toTake = HighlightedText [(highlight, content)]
+  | P.length content < toTake = HighlightedText [(highlight, content)] <> take (P.length content - toTake) (HighlightedText tailH)
+  | P.length content > toTake = HighlightedText [(highlight, P.take toTake content)]
   | otherwise = error "The guards above should cover all cases"
 
-lengthH :: HighlightedText -> Int
-lengthH (HighlightedText ht) = foldl' (\total (_, content) -> total + length content) 0 ht
+length :: HighlightedText -> Int
+length (HighlightedText ht) = foldl' (\total (_, content) -> total + P.length content) 0 ht
 
-lastH :: HighlightedText -> Char
-lastH (HighlightedText ht) = (last . snd . last) ht
+last :: HighlightedText -> Char
+last (HighlightedText ht) = (P.last . snd . P.last) ht
 
-initH :: HighlightedText -> HighlightedText
-initH (HighlightedText ht) = HighlightedText $ init ht <> [initLastPair $ last ht]
+init :: HighlightedText -> HighlightedText
+init (HighlightedText ht) = HighlightedText $ P.init ht <> [initLastPair $ P.last ht]
   where
-    initLastPair (highlight, content) = (highlight, init content)
+    initLastPair (highlight, content) = (highlight, P.init content)
 
-nullH :: HighlightedText -> Bool
-nullH (HighlightedText ht) = null ht
+null :: HighlightedText -> Bool
+null (HighlightedText ht) = P.null ht
 
-linesH :: HighlightedText -> [HighlightedText]
-linesH (HighlightedText ht) =
-  go ht []
-  where
-    go :: [(HighlightAttribute, String)] -> [HighlightedText] -> [HighlightedText]
-    go [] result = result
-    go ((highlight, content) : tailH) result
-      | null (lines content) = go tailH result
-      | length (lines content) == 1 = undefined
-      | length (lines content) > 1 = undefined
-      | otherwise = error "The guards above should cover all cases"
+lines :: HighlightedText -> [HighlightedText]
+lines (HighlightedText ht) = undefined
 
--- highlightedZipper :: [HighlightedText] -> Maybe Int -> TextZipper HighlightedText
+toList :: HighlightedText -> [Char]
+toList (HighlightedText ht) = undefined
+
+highlightedZipper :: [HighlightedText] -> Maybe Int -> TextZipper HighlightedText
 highlightedZipper =
-  mkZipper fromChar dropH takeH lengthH lastH initH nullH
+  mkZipper fromChar drop take length last init null lines toList

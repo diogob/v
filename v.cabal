@@ -73,6 +73,7 @@ test-suite v-test
     other-modules:       HighlightedTextSpec
     build-depends:       base
                        , hspec
+                       , v
     ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
 
 source-repository head

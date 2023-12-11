@@ -1,6 +1,7 @@
 module HighlightedTextSpec (spec) where
 
 import Test.Hspec
+import HighlightedText
 
 spec :: Spec
 spec =
