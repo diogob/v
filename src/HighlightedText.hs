@@ -11,6 +11,8 @@ module HighlightedText
     length,
     take,
     drop,
+    lines,
+    toList,
   )
 where
 
@@ -43,7 +45,10 @@ withHighlightedTitleFromString =
   \case
     [] -> []
     (title : body) ->
-      HighlightedText [(Title, title)] : (HighlightedText . singleton . (,) Body <$> body)
+      HighlightedText [(Title, title)] : highlightList Body body
+
+highlightList :: HighlightAttribute -> [String] -> [HighlightedText]
+highlightList attribute body = HighlightedText . singleton . (,) attribute <$> body
 
 -- Zipper functions
 fromChar :: Char -> HighlightedText
@@ -80,7 +85,19 @@ null :: HighlightedText -> Bool
 null (HighlightedText ht) = P.null ht
 
 lines :: HighlightedText -> [HighlightedText]
-lines (HighlightedText ht) = undefined
+lines (HighlightedText ht) =
+  initLines ++ case lastLine of
+    [] -> []
+    _ -> [HighlightedText lastLine]
+  where
+    (initLines, lastLine) = foldl' splitter ([], []) ht
+    splitter (previousLines, currentLine) (highlight, content)
+      | P.null splitLine = (previousLines, currentLine)
+      | P.length splitLine == 1 = (previousLines, currentLine ++ ((,) highlight <$> splitLine))
+      | P.length splitLine > 1 = (previousLines ++ highlightList highlight splitLine, [])
+      | otherwise = error "The guards above should cover all cases"
+      where
+        splitLine = P.lines content
 
 toList :: HighlightedText -> [Char]
 toList (HighlightedText ht) = undefined
