@@ -100,7 +100,7 @@ lines (HighlightedText ht) =
         splitLine = P.lines content
 
 toList :: HighlightedText -> [Char]
-toList (HighlightedText ht) = undefined
+toList (HighlightedText ht) = foldl' (\str (_,content) -> str ++ content) [] ht
 
 highlightedZipper :: [HighlightedText] -> Maybe Int -> TextZipper HighlightedText
 highlightedZipper =

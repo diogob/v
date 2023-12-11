@@ -4,7 +4,7 @@ import Test.Hspec
 import qualified HighlightedText as H
 
 spec :: Spec
-spec =
+spec = do
   describe "lines" $ do
     it "empty list for empty content" $ do
       H.lines "" `shouldBe` []
@@ -18,3 +18,6 @@ spec =
       H.lines "one\n\n" `shouldBe` ["one", ""]
     it "ignore trailing line breaks" $ do
       H.lines "one\ntwo\n" `shouldBe` ["one", "two"]
+  describe "toList" $ do
+    it "converts contents to string" $ do
+      H.toList "some highlighted text" `shouldBe` "some highlighted text"
