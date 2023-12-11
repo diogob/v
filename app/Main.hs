@@ -2,7 +2,6 @@
 
 module Main (main) where
 
-import Brick (Size (..), Widget (Widget))
 import qualified Brick.AttrMap as A
 import qualified Brick.Main as M
 import qualified Brick.Types as T
@@ -25,6 +24,10 @@ import Control.Monad (void)
 import qualified CustomEditor as C
 import qualified Graphics.Vty as V
 import HighlightedText
+  ( HighlightAttribute (..),
+    HighlightedText (..),
+    withHighlightedTitleFromString,
+  )
 import Lens.Micro
 import Lens.Micro.Mtl
 import Lens.Micro.TH
@@ -85,7 +88,7 @@ renderWithLineNumbers editor =
   lineNumbersVp <+> editorVp
   where
     lineNumbersVp = hLimit (maxNumWidth + 1) $ viewport EditLines T.Vertical body
-    highlightTitle :: [String] -> Widget Name
+    highlightTitle :: [String] -> T.Widget Name
     highlightTitle li =
       let highlightText = withHighlightedTitleFromString li
           highlightedLines = highlightedLine <$> highlightText
@@ -106,10 +109,10 @@ renderWithLineNumbers editor =
     curLine = fst $ E.getCursorPosition editor
     maxNumWidth = length $ show h
 
-highlightedLine :: HighlightedText -> Widget Name
+highlightedLine :: HighlightedText -> T.Widget Name
 highlightedLine (HighlightedText content) = hBox $ withHighlight <$> content
 
-withHighlight :: (HighlightAttribute, String) -> Widget Name
+withHighlight :: (HighlightAttribute, String) -> T.Widget Name
 withHighlight (highlightAttribute, content) = withAttr (highlight highlightAttribute) (str content)
   where
     highlight =
@@ -138,7 +141,7 @@ vAttributes =
   A.attrMap
     V.defAttr
     [ (E.editAttr, V.white `on` V.blue),
-      (E.editFocusedAttr, V.black `on` V.linearColor 100 100 100),
+      (E.editFocusedAttr, V.black `on` V.linearColor (100 :: Integer) 100 100),
       (lineNumberAttr, fg V.cyan),
       (currentLineNumberAttr, V.defAttr `V.withStyle` V.bold),
       (A.attrName "title", fg V.red)
