@@ -1,6 +1,5 @@
 cabal-version:      3.0
 name:               v
-
 -- The package version.
 -- See the Haskell package versioning policy (PVP) for standards
 -- guiding when and how versions should be incremented.
@@ -10,12 +9,13 @@ name:               v
 --                  | | | +--- code changes with no API change
 version:            0.1.0.0
 
--- synopsis:
--- description:
-
+synopsis:           Code editor
+description:        Currently just a toy code editor
+homepage:           https://github.com/diogob/postgres-websockets#readme
 license:            MIT
 license-file:       LICENSE
 author:             Diogo Biazus
+copyright:          2023 Diogo Biazus
 maintainer:         diogo@biazus.ca
 category:           Development
 build-type:         Simple
@@ -34,9 +34,9 @@ library
     hs-source-dirs:   src
     exposed-modules:  HighlightedText
     build-depends:    base          ^>=4.18.1.0
-                    , text-zipper
-                    , text
-                    , bytestring
+                    , bytestring    ^>= 0.11.5
+                    , text          ^>= 2.0.2
+                    , text-zipper   ^>= 0.13
 
 executable v
     import:           warnings
@@ -53,12 +53,12 @@ executable v
     build-depends:    base          ^>=4.18.1.0
                     , brick         ^>=2.1.1  
                     , vty           ^>=6.1
-                    , microlens     >=0.3.0.0
-                    , microlens-th  >=0.3.0.0
-                    , microlens-mtl >=0.2.0.0
-                    , text-zipper
-                    , text
-                    , bytestring
+                    , microlens     ^>= 0.4.13
+                    , microlens-mtl ^>= 0.2.0
+                    , microlens-th  ^>= 0.4.3
+                    , bytestring    ^>= 0.11.5
+                    , text          ^>= 2.0.2
+                    , text-zipper   ^>= 0.13
                     , v
 
     hs-source-dirs:   app
@@ -74,3 +74,7 @@ test-suite v-test
     build-depends:       base
                        , hspec
     ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+
+source-repository head
+  type:     git
+  location: https://github.com/diogob/v
