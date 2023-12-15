@@ -33,10 +33,13 @@ library
     import:           language
     hs-source-dirs:   src
     exposed-modules:  HighlightedText
+                    , HighlightedText.Internal
     build-depends:    base          ^>=4.18.1.0
                     , bytestring    ^>= 0.11.5
                     , text          ^>= 2.0.2
                     , text-zipper   ^>= 0.13
+                    , brick         ^>=2.1.1  
+                    , vty           ^>=6.1
 
 executable v
     import:           warnings
@@ -70,7 +73,7 @@ test-suite v-test
     type:                exitcode-stdio-1.0
     hs-source-dirs:      test
     main-is:             Spec.hs
-    other-modules:       HighlightedTextSpec
+    other-modules:       HighlightedText.InternalSpec
     build-depends:       base
                        , hspec
                        , v

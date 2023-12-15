@@ -1,7 +1,7 @@
-module HighlightedTextSpec (spec) where
+module HighlightedText.InternalSpec (spec) where
 
 import Test.Hspec
-import qualified HighlightedText as H
+import qualified HighlightedText.Internal as H
 
 spec :: Spec
 spec = do

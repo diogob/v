@@ -32,6 +32,7 @@ import Lens.Micro
 import Lens.Micro.Mtl
 import Lens.Micro.TH
 import System.Environment (getArgs)
+import Data.String (fromString)
 
 data Name
   = Edit
@@ -39,7 +40,7 @@ data Name
   deriving (Ord, Show, Eq)
 
 newtype St = St
-  { _edit :: E.Editor String Name
+  { _edit :: E.Editor HighlightedText Name
   }
 
 makeLenses ''St
@@ -83,12 +84,12 @@ drawUI displayLines displayColumns st = [ui]
 -- 1@ line numbers for a viewport height of @K@. That's more involved,
 -- so I didn't do it here, but that would be the way to go for a Real
 -- Application.
-renderWithLineNumbers :: E.Editor String Name -> T.Widget Name
+renderWithLineNumbers :: E.Editor HighlightedText Name -> T.Widget Name
 renderWithLineNumbers editor =
   lineNumbersVp <+> editorVp
   where
     lineNumbersVp = hLimit (maxNumWidth + 1) $ viewport EditLines T.Vertical body
-    highlightTitle :: [String] -> T.Widget Name
+    highlightTitle :: [HighlightedText] -> T.Widget Name
     highlightTitle li =
       let highlightText = withHighlightedTitleFromString li
           highlightedLines = highlightedLine <$> highlightText
@@ -126,7 +127,7 @@ event (T.VtyEvent (V.EvKey V.KEsc [])) =
 event ev = do
   zoom edit $ E.handleEditorEvent ev
 
-initialState :: String -> St
+initialState :: HighlightedText -> St
 initialState content =
   St (E.editor Edit Nothing content)
 
@@ -163,4 +164,4 @@ main = do
   content <- case args of
     [path] -> readFile path
     _ -> pure ""
-  void $ M.defaultMain vEditor $ initialState content
+  void $ M.defaultMain vEditor $ initialState (fromString content)
