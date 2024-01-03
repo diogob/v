@@ -74,8 +74,10 @@ test-suite v-test
     hs-source-dirs:      test
     main-is:             Spec.hs
     other-modules:       HighlightedText.InternalSpec
+                       , HighlightedTextSpec
     build-depends:       base
                        , hspec
+                       , text-zipper   ^>= 0.13
                        , v
     ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
 
