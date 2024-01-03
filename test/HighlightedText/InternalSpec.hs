@@ -1,7 +1,7 @@
 module HighlightedText.InternalSpec (spec) where
 
-import Test.Hspec
 import qualified HighlightedText.Internal as H
+import Test.Hspec
 
 spec :: Spec
 spec = do
@@ -18,6 +18,14 @@ spec = do
       H.lines "one\n\n" `shouldBe` ["one", ""]
     it "ignore trailing line breaks" $ do
       H.lines "one\ntwo\n" `shouldBe` ["one", "two"]
+  describe "init" $ do
+    it "get two initial elements" $ do
+      H.init "123" `shouldBe` "12"
+    it "return empty text when we have only one character" $ do
+      H.init "1" `shouldBe` ""
+    it "return event when there are empty contents" $
+      do
+        H.init (H.HighlightedText [(H.Title, "title"), (H.Body, "")]) `shouldBe` H.HighlightedText [(H.Title, "titl")]
   describe "toList" $ do
     it "converts contents to string" $ do
       H.toList "some highlighted text" `shouldBe` "some highlighted text"

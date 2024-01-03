@@ -11,7 +11,7 @@ module HighlightedText.Internal
     drop,
     lines,
     toList,
-    fromChar
+    fromChar,
   )
 where
 
@@ -67,8 +67,9 @@ last :: HighlightedText -> Char
 last (HighlightedText ht) = (P.last . snd . P.last) ht
 
 init :: HighlightedText -> HighlightedText
-init (HighlightedText ht) = HighlightedText $ P.init ht <> [initLastPair $ P.last ht]
+init (HighlightedText ht) = HighlightedText $ P.init trimmedHt <> [initLastPair $ P.last trimmedHt]
   where
+    trimmedHt = filter (\(_, content) -> not $ P.null content) ht
     initLastPair (highlight, content) = (highlight, P.init content)
 
 null :: HighlightedText -> Bool
@@ -90,4 +91,4 @@ lines (HighlightedText ht) =
         splitLine = P.lines content
 
 toList :: HighlightedText -> [Char]
-toList (HighlightedText ht) = foldl' (\str (_,content) -> str ++ content) [] ht
+toList (HighlightedText ht) = foldl' (\str (_, content) -> str ++ content) [] ht
