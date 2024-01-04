@@ -56,7 +56,7 @@ take :: Int -> HighlightedText -> HighlightedText
 take _ (HighlightedText []) = HighlightedText []
 take toTake (HighlightedText ((highlight, content) : tailH))
   | P.length content == toTake = HighlightedText [(highlight, content)]
-  | P.length content < toTake = HighlightedText [(highlight, content)] <> take (P.length content - toTake) (HighlightedText tailH)
+  | P.length content < toTake = HighlightedText [(highlight, content)] <> take (toTake - P.length content) (HighlightedText tailH)
   | P.length content > toTake = HighlightedText [(highlight, P.take toTake content)]
   | otherwise = error "The guards above should cover all cases"
 
@@ -67,7 +67,10 @@ last :: HighlightedText -> Char
 last (HighlightedText ht) = (P.last . snd . P.last) ht
 
 init :: HighlightedText -> HighlightedText
-init (HighlightedText ht) = HighlightedText $ P.init trimmedHt <> [initLastPair $ P.last trimmedHt]
+init (HighlightedText []) = HighlightedText []
+init (HighlightedText ht)
+  | P.null trimmedHt = HighlightedText []
+  | otherwise = HighlightedText $ P.init trimmedHt <> [initLastPair $ P.last trimmedHt]
   where
     trimmedHt = filter (\(_, content) -> not $ P.null content) ht
     initLastPair (highlight, content) = (highlight, P.init content)

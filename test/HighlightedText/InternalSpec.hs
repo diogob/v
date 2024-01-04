@@ -22,7 +22,8 @@ spec = do
     it "get 5 initial elements" $ do
       H.take 5 "Hello World" `shouldBe` "Hello"
     it "get 4 initial elements" $ do
-      H.take 4 (H.HighlightedText [(H.Body, "b"), (H.Body, "o"), (H.Body, "d"), (H.Body, "y")]) `shouldBe` "body"
+      H.take 4 (H.HighlightedText [(H.Body, "b"), (H.Body, "o"), (H.Body, "d"), (H.Body, "y")])
+        `shouldBe` H.HighlightedText [(H.Body, "b"), (H.Body, "o"), (H.Body, "d"), (H.Body, "y")]
   describe "init" $ do
     it "get two initial elements" $ do
       H.init "123" `shouldBe` "12"
