@@ -14,7 +14,7 @@ import Lens.Micro
 -- name for its scrollable viewport handle and the name is also used to
 -- report mouse events.
 renderEditor ::
-  (Ord n, Show n, Monoid t, TextWidth t, Z.GenericTextZipper t) =>
+  (Ord n, Show n, Monoid t, TextWidth t, Z.GenericTextZipper t, Show t) =>
   -- | The content drawing function
   ([t] -> Widget n) ->
   -- | Whether the editor has focus. It will report a cursor
@@ -26,7 +26,8 @@ renderEditor ::
 renderEditor draw foc editor =
   let cp = Z.cursorPosition z
       z = editor ^. editContentsL
-      toLeft = Z.take (cp ^. _2) (Z.currentLine z)
+      toTake = cp ^. _2
+      toLeft = Z.take toTake (Z.currentLine z)
       cursorLoc = Location (textWidth toLeft, cp ^. _1)
       limit = maybe id vLimit (editor ^. editContentsL . to Z.getLineLimit)
       atChar = charAtCursor $ editor ^. editContentsL

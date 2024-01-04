@@ -18,6 +18,11 @@ spec = do
       H.lines "one\n\n" `shouldBe` ["one", ""]
     it "ignore trailing line breaks" $ do
       H.lines "one\ntwo\n" `shouldBe` ["one", "two"]
+  describe "take" $ do
+    it "get 5 initial elements" $ do
+      H.take 5 "Hello World" `shouldBe` "Hello"
+    it "get 4 initial elements" $ do
+      H.take 4 (H.HighlightedText [(H.Body, "b"), (H.Body, "o"), (H.Body, "d"), (H.Body, "y")]) `shouldBe` "body"
   describe "init" $ do
     it "get two initial elements" $ do
       H.init "123" `shouldBe` "12"

@@ -78,6 +78,7 @@ test-suite v-test
     build-depends:       base
                        , hspec
                        , text-zipper   ^>= 0.13
+                       , brick         ^>=2.1.1  
                        , v
     ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
 
