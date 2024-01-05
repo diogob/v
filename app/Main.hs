@@ -22,6 +22,7 @@ import Brick.Widgets.Core
 import qualified Brick.Widgets.Edit as E
 import Control.Monad (void)
 import qualified CustomEditor as C
+import Data.String (fromString)
 import qualified Graphics.Vty as V
 import HighlightedText
   ( HighlightAttribute (..),
@@ -32,7 +33,6 @@ import Lens.Micro
 import Lens.Micro.Mtl
 import Lens.Micro.TH
 import System.Environment (getArgs)
-import Data.String (fromString)
 
 data Name
   = Edit
@@ -111,6 +111,7 @@ renderWithLineNumbers editor =
     maxNumWidth = length $ show h
 
 highlightedLine :: HighlightedText -> T.Widget Name
+highlightedLine (HighlightedText []) = str "\n"
 highlightedLine (HighlightedText content) = hBox $ withHighlight <$> content
 
 withHighlight :: (HighlightAttribute, String) -> T.Widget Name

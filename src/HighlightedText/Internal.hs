@@ -31,9 +31,9 @@ instance IsString HighlightedText where
   fromString = HighlightedText . singleton . (,) Body
 
 instance Semigroup HighlightedText where
-  (<>) (HighlightedText []) (HighlightedText htb) = HighlightedText htb
-  (<>) (HighlightedText hta) (HighlightedText []) = HighlightedText hta
-  (<>) (HighlightedText hta) (HighlightedText htb) = HighlightedText $ hta <> htb
+  (<>) (HighlightedText []) (HighlightedText htb) = HighlightedText $ trimHt htb
+  (<>) (HighlightedText hta) (HighlightedText []) = HighlightedText $ trimHt hta
+  (<>) (HighlightedText hta) (HighlightedText htb) = HighlightedText $ trimHt $ hta <> htb
 
 instance Monoid HighlightedText where
   mempty = HighlightedText []
@@ -66,13 +66,16 @@ length (HighlightedText ht) = foldl' (\total (_, content) -> total + P.length co
 last :: HighlightedText -> Char
 last (HighlightedText ht) = (P.last . snd . P.last) ht
 
+trimHt :: [(HighlightAttribute, String)] -> [(HighlightAttribute, String)]
+trimHt = filter (\(_, content) -> not $ P.null content)
+
 init :: HighlightedText -> HighlightedText
 init (HighlightedText []) = HighlightedText []
 init (HighlightedText ht)
   | P.null trimmedHt = HighlightedText []
   | otherwise = HighlightedText $ P.init trimmedHt <> [initLastPair $ P.last trimmedHt]
   where
-    trimmedHt = filter (\(_, content) -> not $ P.null content) ht
+    trimmedHt = trimHt ht
     initLastPair (highlight, content) = (highlight, P.init content)
 
 null :: HighlightedText -> Bool
