@@ -73,7 +73,7 @@ init :: HighlightedText -> HighlightedText
 init (HighlightedText []) = HighlightedText []
 init (HighlightedText ht)
   | P.null trimmedHt = HighlightedText []
-  | otherwise = HighlightedText $ P.init trimmedHt <> [initLastPair $ P.last trimmedHt]
+  | otherwise = HighlightedText $ trimHt $ P.init trimmedHt <> [initLastPair $ P.last trimmedHt]
   where
     trimmedHt = trimHt ht
     initLastPair (highlight, content) = (highlight, P.init content)
