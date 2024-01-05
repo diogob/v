@@ -24,6 +24,12 @@ spec = do
     it "get 4 initial elements" $ do
       H.take 4 (H.HighlightedText [(H.Body, "b"), (H.Body, "o"), (H.Body, "d"), (H.Body, "y")])
         `shouldBe` H.HighlightedText [(H.Body, "b"), (H.Body, "o"), (H.Body, "d"), (H.Body, "y")]
+  describe "drop" $ do
+    it "get 6 initial elements" $ do
+      H.drop 6 "Hello World" `shouldBe` "World"
+    it "get 4 initial elements" $ do
+      H.drop 4 (H.HighlightedText [(H.Body, "b"), (H.Body, "o"), (H.Body, "d"), (H.Body, "y")])
+        `shouldBe` H.HighlightedText []
   describe "init" $ do
     it "get two initial elements" $ do
       H.init "123" `shouldBe` "12"

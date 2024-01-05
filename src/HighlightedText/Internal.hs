@@ -48,7 +48,7 @@ drop :: Int -> HighlightedText -> HighlightedText
 drop _ (HighlightedText []) = HighlightedText []
 drop toDrop (HighlightedText ((highlight, content) : tailH))
   | P.length content == toDrop = HighlightedText tailH
-  | P.length content < toDrop = drop (P.length content - toDrop) $ HighlightedText tailH
+  | P.length content < toDrop = drop (toDrop - P.length content) $ HighlightedText tailH
   | P.length content > toDrop = HighlightedText ((highlight, P.drop toDrop content) : tailH)
   | otherwise = error "The guards above should cover all cases"
 
