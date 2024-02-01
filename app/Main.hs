@@ -126,7 +126,7 @@ event :: T.BrickEvent Name e -> T.EventM Name St ()
 event (T.VtyEvent (V.EvKey V.KEsc [])) =
   M.halt
 event ev = do
-  zoom edit $ E.handleEditorEvent ev
+  zoom edit $ C.handleEditorEvent ev
 
 initialState :: HighlightedText -> St
 initialState content =
