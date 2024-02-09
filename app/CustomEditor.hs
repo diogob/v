@@ -11,6 +11,12 @@ import qualified Data.Text.Zipper.Generic.Words as Z
 import Lens.Micro
 import Graphics.Vty (Event(..), Key(..), Modifier(..))
 import Data.Tuple (swap)
+import Data.String (fromString)
+import Parsers.MiniML.Lexer
+import Parsers.MiniML.Parser
+import HighlightedText (HighlightedText)
+import Control.Monad.IO.Class (MonadIO(liftIO))
+import System.IO (hPutStrLn, stderr, hPrint)
 
 -- | Turn an editor state value into a widget. This uses the editor's
 -- name for its scrollable viewport handle and the name is also used to
@@ -42,9 +48,9 @@ renderEditor draw foc editor =
                 draw $
                   getEditContents editor
 
-handleEditorEvent :: (Eq n, DecodeUtf8 t, Eq t, Z.GenericTextZipper t)
+handleEditorEvent :: (Eq n)
                   => BrickEvent n e
-                  -> EventM n (Editor t n) ()
+                  -> EventM n (Editor HighlightedText n) ()
 handleEditorEvent e = do
     ed <- get
     let f = case e of
@@ -81,7 +87,14 @@ handleEditorEvent e = do
             EvKey (KChar '<') [MMeta] -> Z.gotoBOF
             EvKey (KChar '>') [MMeta] -> Z.gotoEOF
             _anyOtherKey -> id
-    put $ applyEdit f ed
+    let
+      newEd = applyEdit f ed
+      allLines = Z.getText $ editContents newEd
+      fullContent = unlines $ Z.toList <$> allLines
+      ast = runAlex (fromString fullContent) parseMiniML
+    liftIO $ hPrint stderr ast
+    put newEd
+
 -- private
 
 charAtCursor :: (Z.GenericTextZipper t) => Z.TextZipper t -> Maybe t
