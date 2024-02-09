@@ -52,7 +52,7 @@ handleEditorEvent e = do
                   handleVtyEvent ev
               MouseDown n _ _ (Location pos) | n == getName ed ->
                   Z.moveCursorClosest (swap pos)
-              _ -> id
+              _anyOtherEvent -> id
         handleVtyEvent ev = case ev of
             EvPaste bs -> case decodeUtf8 bs of
                 Left _ -> id
@@ -80,7 +80,7 @@ handleEditorEvent e = do
             EvKey KEnd [] -> Z.gotoEOL
             EvKey (KChar '<') [MMeta] -> Z.gotoBOF
             EvKey (KChar '>') [MMeta] -> Z.gotoEOF
-            _ -> id
+            _anyOtherKey -> id
     put $ applyEdit f ed
 -- private
 
