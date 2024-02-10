@@ -29,21 +29,23 @@ common language
     default-extensions: OverloadedStrings, LambdaCase
 
 library
-    import:           warnings
-    import:           language
-    hs-source-dirs:   src
-    exposed-modules:  HighlightedText
-                    , HighlightedText.Internal
-                    , Parsers.MiniML.Lexer
-                    , Parsers.MiniML.Parser
-    other-modules:
-    build-depends:    base          ^>=4.18.1.0
-                    , bytestring    ^>= 0.11.5
-                    , text          ^>= 2.0.2
-                    , text-zipper   ^>= 0.13
-                    , brick         ^>=2.1.1  
-                    , vty           ^>=6.1
-                    , array         ^>=0.5.5.0
+    import:             warnings
+    import:             language
+    hs-source-dirs:     src
+    build-tools-depend: alex, happy
+    exposed-modules:    HighlightedText
+                        , HighlightedText.Internal
+                        , Parsers.MiniML.Lexer
+                        , Parsers.MiniML.Parser
+    other-modules:      Parsers.JSON.Lexer
+                        , Parsers.JSON.Parser
+    build-depends:      base          ^>=4.18.1.0
+                        , bytestring    ^>= 0.11.5
+                        , text          ^>= 2.0.2
+                        , text-zipper   ^>= 0.13
+                        , brick         ^>=2.1.1  
+                        , vty           ^>=6.1
+                        , array         ^>=0.5.5.0
 
 executable v
     import:           warnings
