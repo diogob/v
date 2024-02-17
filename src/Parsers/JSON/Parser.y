@@ -34,36 +34,9 @@ import qualified Parsers.JSON.Lexer as L
   -- Types
   ':'        { L.RangedToken L.Colon _ }
 
-%right else in
-%right '->'
-%left '|'
-%left '&'
-%nonassoc '=' '<>' '<' '>' '<=' '>='
-%left '+' '-'
-%left '*' '/'
-
 %%
 
-optional(p)
-  :   { Nothing }
-  | p { Just $1 }
-
-many_rev(p)
-  :               { [] }
-  | many_rev(p) p { $2 : $1 }
-
-many(p)
-  : many_rev(p) { reverse $1 }
-
-sepBy_rev(p, sep)
-  :                         { [] }
-  | sepBy_rev(p, sep) sep p { $3 : $1 }
-
-sepBy(p, sep)
-  : sepBy_rev(p, sep) { reverse $1 }
-
-name :: { Name L.Range }
-  : identifier { unTok $1 (\range (L.Identifier name) -> Name range name) }
+Object : '{'  '}' { Object }
 
 {
 parseError :: L.RangedToken -> L.Alex a
@@ -91,35 +64,8 @@ L.Range a1 _ <-> L.Range _ b2 = L.Range a1 b2
 
 -- * AST
 
-data Name a
-  = Name a ByteString
-  deriving (Foldable, Show)
-
-data Type a
-  = TVar a (Name a)
-  | TPar a (Type a)
-  | TUnit a
-  | TList a (Type a)
-  | TArrow a (Type a) (Type a)
-  deriving (Foldable, Show)
-
-data Argument a
-  = Argument a (Name a) (Maybe (Type a))
-  deriving (Foldable, Show)
-
-data Operator a
-  = Plus a
-  | Minus a
-  | Times a
-  | Divide a
-  | Eq a
-  | Neq a
-  | Lt a
-  | Le a
-  | Gt a
-  | Ge a
-  | And a
-  | Or a
-  deriving (Foldable, Show)
+data Object
+  = Object
+  deriving (Show)
 
 }
