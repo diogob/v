@@ -7,6 +7,11 @@ module Parsers.JSON.Lexer
   , alexError
   , runAlex
   , alexMonadScan
+
+  , Range (..)
+  , RangedToken (..)
+  , Token (..)
+  , scanMany
   ) where
 
 import Control.Monad (when)
@@ -22,14 +27,22 @@ $alpha = [a-zA-Z]
 @id = ($alpha | \_) ($alpha | $digit | \_ | \' | \?)*
 tokens :-
 <0> $white+ ;
+<0> "["     { tok LSquare }
+<0> "]"     { tok RSquare }
+<0> "{"     { tok LCurly }
+<0> "}"     { tok RCurly }
+<0> ","     { tok Comma }
+<0> ":"     { tok Colon }
 {
 data AlexUserState = AlexUserState
   { nestLevel :: Int
   }
+
 alexInitUserState :: AlexUserState
 alexInitUserState = AlexUserState
   { nestLevel = 0
   }
+
 get :: Alex AlexUserState
 get = Alex $ \s -> Right (s, alex_ust s)
 put :: AlexUserState -> Alex ()
@@ -55,38 +68,36 @@ data Token
   -- Constants
   | String ByteString
   | Integer Integer
-  -- Keywords
-  | Let
-  | In
-  | If
-  | Then
-  | Else
-  -- Arithmetic operators
-  | Plus
-  | Minus
-  | Times
-  | Divide
-  -- Comparison operators
-  | Eq
-  | Neq
-  | Lt
-  | Le
-  | Gt
-  | Ge
-  -- Logical operators
-  | And
-  | Or
-  -- Parenthesis
-  | LPar
-  | RPar
-  -- Lists
+  | Boolean Bool
+  -- Lists and Object
+  | LCurly
+  | RCurly
+  | LSquare
+  | RSquare
   | Comma
-  | LBrack
-  | RBrack
-  -- Types
   | Colon
-  | Arrow
   -- EOF
   | EOF
   deriving (Eq, Show)
+
+mkRange :: AlexInput -> Int64 -> Range
+mkRange (start, _, str, _) len = Range{start = start, stop = stop}
+  where
+    stop = BS.foldl' alexMove start $ BS.take len str
+
+tok :: Token -> AlexAction RangedToken
+tok ctor inp len =
+  pure RangedToken
+    { rtToken = ctor
+    , rtRange = mkRange inp len
+    }
+
+scanMany :: ByteString -> Either String [RangedToken]
+scanMany input = runAlex input go
+  where
+    go = do
+      output <- alexMonadScan
+      if rtToken output == EOF
+        then pure [output]
+        else (output :) <$> go
 }

@@ -8,7 +8,7 @@ import Data.ByteString.Lazy.Char8 (ByteString)
 import Data.Maybe (fromJust)
 import Data.Monoid (First (..))
 
-import qualified Parsers.MiniML.Lexer as L
+import qualified Parsers.JSON.Lexer as L
 }
 
 %name parseJSON
@@ -24,37 +24,15 @@ import qualified Parsers.MiniML.Lexer as L
   -- Constants
   string     { L.RangedToken (L.String _) _ }
   integer    { L.RangedToken (L.Integer _) _ }
-  -- Keywords
-  let        { L.RangedToken L.Let _ }
-  in         { L.RangedToken L.In _ }
-  if         { L.RangedToken L.If _ }
-  then       { L.RangedToken L.Then _ }
-  else       { L.RangedToken L.Else _ }
-  -- Arithmetic operators
-  '+'        { L.RangedToken L.Plus _ }
-  '-'        { L.RangedToken L.Minus _ }
-  '*'        { L.RangedToken L.Times _ }
-  '/'        { L.RangedToken L.Divide _ }
-  -- Comparison operators
-  '='        { L.RangedToken L.Eq _ }
-  '<>'       { L.RangedToken L.Neq _ }
-  '<'        { L.RangedToken L.Lt _ }
-  '<='       { L.RangedToken L.Le _ }
-  '>'        { L.RangedToken L.Gt _ }
-  '>='       { L.RangedToken L.Ge _ }
-  -- Logical operators
-  '&'        { L.RangedToken L.And _ }
-  '|'        { L.RangedToken L.Or _ }
-  -- Parenthesis
-  '('        { L.RangedToken L.LPar _ }
-  ')'        { L.RangedToken L.RPar _ }
+  -- Objects
+  '{'        { L.RangedToken L.LCurly _ }
+  '}'        { L.RangedToken L.RCurly _ }
   -- Lists
-  '['        { L.RangedToken L.LBrack _ }
-  ']'        { L.RangedToken L.RBrack _ }
+  '['        { L.RangedToken L.LSquare _ }
+  ']'        { L.RangedToken L.RSquare _ }
   ','        { L.RangedToken L.Comma _ }
   -- Types
   ':'        { L.RangedToken L.Colon _ }
-  '->'       { L.RangedToken L.Arrow _ }
 
 %right else in
 %right '->'
@@ -86,20 +64,6 @@ sepBy(p, sep)
 
 name :: { Name L.Range }
   : identifier { unTok $1 (\range (L.Identifier name) -> Name range name) }
-
-type :: { Type L.Range }
-  : name           { TVar (info $1) $1 }
-  | '(' ')'        { TUnit (L.rtRange $1 <-> L.rtRange $2) }
-  | '(' type ')'   { TPar (L.rtRange $1 <-> L.rtRange $3) $2 }
-  | '[' type ']'   { TList (L.rtRange $1 <-> L.rtRange $3) $2 }
-  | type '->' type { TArrow (info $1 <-> info $3) $1 $3 }
-
-typeAnnotation :: { Type L.Range }
-  : ':' type { $2 }
-
-argument :: { Argument L.Range }
-  : '(' name optional(typeAnnotation) ')' { Argument (L.rtRange $1 <-> L.rtRange $4) $2 $3 }
-  | name                                  { Argument (info $1) $1 Nothing }
 
 {
 parseError :: L.RangedToken -> L.Alex a
