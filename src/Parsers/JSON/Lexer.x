@@ -33,6 +33,7 @@ tokens :-
 <0> "}"     { tok RCurly }
 <0> ","     { tok Comma }
 <0> ":"     { tok Colon }
+<0> \"[^\"]*\" { tokString }
 {
 data AlexUserState = AlexUserState
   { nestLevel :: Int
@@ -89,6 +90,13 @@ tok :: Token -> AlexAction RangedToken
 tok ctor inp len =
   pure RangedToken
     { rtToken = ctor
+    , rtRange = mkRange inp len
+    }
+
+tokString :: AlexAction RangedToken
+tokString inp@(_, _, str, _) len =
+  pure RangedToken
+    { rtToken = String $ BS.take len str
     , rtRange = mkRange inp len
     }
 

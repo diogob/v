@@ -36,7 +36,9 @@ import qualified Parsers.JSON.Lexer as L
 
 %%
 
-Object : '{'  '}' { Object }
+Value : '{'  '}' { Object }
+      | '['  ']' { Array [] }
+      | string   { unTok $1 (\range (L.String string) -> String string) }
 
 {
 parseError :: L.RangedToken -> L.Alex a
@@ -64,8 +66,13 @@ L.Range a1 _ <-> L.Range _ b2 = L.Range a1 b2
 
 -- * AST
 
-data Object
+data Value
   = Object
+  | Array [Value]
+  | String ByteString
+  | Number Float
+  | Boolean Bool
+  | Null
   deriving (Show)
 
 }
