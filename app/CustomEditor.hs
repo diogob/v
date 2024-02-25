@@ -1,10 +1,11 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module CustomEditor (renderEditor, handleEditorEvent, editor, Editor, getEditContents, getCursorPosition) where
+module CustomEditor (renderEditor, handleEditorEvent, editor, Editor, getEditContents, getCursorPosition, Name (..), renderWithLineNumbers, lineNumberAttr, currentLineNumberAttr, vAttributes) where
 
 import Brick.AttrMap
 import Brick.Types
+import Brick.Util (fg, on)
 import Brick.Widgets.Core
 import Brick.Widgets.Edit (DecodeUtf8 (..))
 import Control.Monad.IO.Class (MonadIO (liftIO))
@@ -14,10 +15,16 @@ import qualified Data.Text.Zipper.Generic as Z
 import qualified Data.Text.Zipper.Generic.Words as Z
 import Data.Tuple (swap)
 import Graphics.Vty (Event (..), Key (..), Modifier (..))
-import HighlightedText (HighlightedText)
+import qualified Graphics.Vty as V
+import HighlightedText (HighlightAttribute (Body, Title), HighlightedText (HighlightedText), withHighlightedTitleFromString)
 import qualified Parsers.MiniML.Lexer as MML
 import qualified Parsers.MiniML.Parser as MML
 import System.IO (hPrint, hPutStrLn, stderr)
+
+data Name
+  = Edit
+  | EditLines
+  deriving (Ord, Show, Eq)
 
 data Editor n = Editor
   { -- | The contents of the editor
@@ -37,6 +44,17 @@ instance (Show n) => Show (Editor n) where
 
 instance Named (Editor n) n where
   getName = editorName
+
+vAttributes :: AttrMap
+vAttributes =
+  attrMap
+    V.defAttr
+    [ (editAttr, V.white `on` V.blue),
+      (editFocusedAttr, V.black `on` V.linearColor (100 :: Integer) 100 100),
+      (lineNumberAttr, fg V.cyan),
+      (currentLineNumberAttr, V.defAttr `V.withStyle` V.bold),
+      (attrName "title", fg V.red)
+    ]
 
 -- | Construct an editor over 'String' values
 editor ::
@@ -74,14 +92,90 @@ editFocusedAttr :: AttrName
 editFocusedAttr = editAttr <> attrName "focused"
 
 -- | Get the contents of the editor.
-getEditContents ::  Editor n -> [HighlightedText]
+getEditContents :: Editor n -> [HighlightedText]
 getEditContents e = Z.getText $ editContents e
 
 -- | Get the cursor position of the editor (row, column).
 getCursorPosition :: Editor n -> (Int, Int)
 getCursorPosition e = Z.cursorPosition $ editContents e
 
--- | Turn an editor state value into a widget. This uses the editor's
+currentLineNumberAttr :: AttrName
+currentLineNumberAttr = lineNumberAttr <> attrName "current"
+
+lineNumberAttr :: AttrName
+lineNumberAttr = attrName "lineNumber"
+
+-- | Given an editor, render the editor with line numbers to the left of
+-- the editor.
+--
+-- This essentially exploits knowledge of how the editor is implemented:
+-- we make a viewport containing line numbers that is just as high as
+-- the editor, then request that the line number associated with the
+-- editor's current line position be made visible, thus scrolling it
+-- into view. This is slightly brittle, however, because it relies on
+-- essentially keeping the line number viewport and the editor viewport
+-- in the same vertical scrolling state; with direct scrolling requests
+-- from EventM it is easily possible to put the two viewports into a
+-- state where they do not have the same vertical scrolling offset. That
+-- means that visibility requests made with 'visible' won't necessarily
+-- have the same effect in each viewport in that case. So this is
+-- only really usable in the case where you're sure that the editor's
+-- viewport and the line number viewports will not be managed by direct
+-- viewport operations in EventB. That's what I'd recommend anyway, but
+-- still, this is an important caveat.
+--
+-- There's another important caveat here: this particular implementation
+-- has @O(n)@ performance for editor height @n@ because we generate
+-- the entire list of line numbers on each rendering depending on the
+-- height of the editor. That means that for sufficiently large files,
+-- it will get more expensive to render the line numbers. There is a way
+-- around this problem, which is to take the approach that the @List@
+-- implementation takes: only render a region of visible line numbers
+-- around the currently-edited line that is just large enough to be
+-- guaranteed to fill the viewport, then translate that so that it
+-- appears at the right viewport offset, thus faking a viewport filled
+-- with line numbers when in fact we'd only ever render at most @2 * K +
+-- 1@ line numbers for a viewport height of @K@. That's more involved,
+-- so I didn't do it here, but that would be the way to go for a Real
+-- Application.
+renderWithLineNumbers :: Editor Name -> Widget Name
+renderWithLineNumbers editor =
+  lineNumbersVp <+> editorVp
+  where
+    lineNumbersVp = hLimit (maxNumWidth + 1) $ viewport EditLines Vertical body
+    highlightTitle :: [HighlightedText] -> Widget n
+    highlightTitle li =
+      let highlightText = withHighlightedTitleFromString li
+          highlightedLines = highlightedLine <$> highlightText
+       in vBox highlightedLines
+
+    editorVp = renderEditor highlightTitle True editor
+    body = withDefAttr lineNumberAttr $ vBox numWidgets
+    numWidgets = mkNumWidget <$> numbers
+    mkNumWidget i = maybeVisible i $ str $ show i
+    maybeVisible i
+      | i == curLine + 1 =
+          visible . withDefAttr currentLineNumberAttr
+      | otherwise =
+          id
+    numbers = [1 .. h]
+    contents = getEditContents editor
+    h = length contents
+    curLine = fst $ getCursorPosition editor
+    maxNumWidth = length $ show h
+
+highlightedLine :: HighlightedText -> Widget n
+highlightedLine (HighlightedText []) = str "\n"
+highlightedLine (HighlightedText content) = hBox $ withHighlight <$> content
+
+withHighlight :: (HighlightAttribute, String) -> Widget n
+withHighlight (highlightAttribute, content) = withAttr (highlight highlightAttribute) (str content)
+  where
+    highlight =
+      \case
+        Title -> attrName "title"
+        Body -> attrName "body"
+
 -- name for its scrollable viewport handle and the name is also used to
 -- report mouse events.
 renderEditor ::
