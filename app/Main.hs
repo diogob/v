@@ -40,7 +40,7 @@ data Name
   deriving (Ord, Show, Eq)
 
 newtype State = State
-  { _edit :: C.Editor HighlightedText Name
+  { _edit :: C.Editor Name
   }
 
 makeLenses ''State
@@ -84,7 +84,7 @@ drawUI displayLines displayColumns st = [ui]
 -- 1@ line numbers for a viewport height of @K@. That's more involved,
 -- so I didn't do it here, but that would be the way to go for a Real
 -- Application.
-renderWithLineNumbers :: C.Editor HighlightedText Name -> T.Widget Name
+renderWithLineNumbers :: C.Editor Name -> T.Widget Name
 renderWithLineNumbers editor =
   lineNumbersVp <+> editorVp
   where

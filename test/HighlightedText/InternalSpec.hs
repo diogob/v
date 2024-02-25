@@ -2,6 +2,7 @@ module HighlightedText.InternalSpec (spec) where
 
 import qualified HighlightedText.Internal as H
 import Test.Hspec
+import HighlightedText (HighlightedText(HighlightedText))
 
 spec :: Spec
 spec = do
@@ -34,7 +35,7 @@ spec = do
     it "get two initial elements" $ do
       H.init "123" `shouldBe` "12"
     it "return empty text when we have only one character" $ do
-      H.init "1" `shouldBe` ""
+      H.init "1" `shouldBe` H.HighlightedText []
     it "return event when there are empty contents" $
       do
         H.init (H.HighlightedText [(H.Title, "title"), (H.Body, "")]) `shouldBe` H.HighlightedText [(H.Title, "titl")]

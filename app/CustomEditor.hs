@@ -19,14 +19,14 @@ import qualified Parsers.MiniML.Lexer as MML
 import qualified Parsers.MiniML.Parser as MML
 import System.IO (hPrint, hPutStrLn, stderr)
 
-data Editor t n = Editor
+data Editor n = Editor
   { -- | The contents of the editor
-    editContents :: Z.TextZipper t,
+    editContents :: Z.TextZipper HighlightedText,
     -- | The name of the editor
     editorName :: n
   }
 
-instance (Show t, Show n) => Show (Editor t n) where
+instance (Show n) => Show (Editor n) where
   show e =
     concat
       [ "Editor { ",
@@ -35,20 +35,19 @@ instance (Show t, Show n) => Show (Editor t n) where
         "}"
       ]
 
-instance Named (Editor t n) n where
+instance Named (Editor n) n where
   getName = editorName
 
 -- | Construct an editor over 'String' values
 editor ::
-  (Z.GenericTextZipper a) =>
   -- | The editor's name (must be unique)
   n ->
   -- | The limit on the number of lines in the editor ('Nothing'
   -- means no limit)
   Maybe Int ->
   -- | The initial content
-  a ->
-  Editor a n
+  HighlightedText ->
+  Editor n
 editor name limit s = Editor (Z.textZipper (Z.lines s) limit) name
 
 -- | Apply an editing operation to the editor's contents.
@@ -59,9 +58,9 @@ editor name limit s = Editor (Z.textZipper (Z.lines s) limit) name
 -- the line limit.
 applyEdit ::
   -- | The 'Z.TextZipper' editing transformation to apply
-  (Z.TextZipper t -> Z.TextZipper t) ->
-  Editor t n ->
-  Editor t n
+  (Z.TextZipper HighlightedText -> Z.TextZipper HighlightedText) ->
+  Editor n ->
+  Editor n
 applyEdit f (Editor z name) =
   Editor (f z) name
 
@@ -75,25 +74,25 @@ editFocusedAttr :: AttrName
 editFocusedAttr = editAttr <> attrName "focused"
 
 -- | Get the contents of the editor.
-getEditContents :: (Monoid t) => Editor t n -> [t]
+getEditContents ::  Editor n -> [HighlightedText]
 getEditContents e = Z.getText $ editContents e
 
 -- | Get the cursor position of the editor (row, column).
-getCursorPosition :: Editor t n -> (Int, Int)
+getCursorPosition :: Editor n -> (Int, Int)
 getCursorPosition e = Z.cursorPosition $ editContents e
 
 -- | Turn an editor state value into a widget. This uses the editor's
 -- name for its scrollable viewport handle and the name is also used to
 -- report mouse events.
 renderEditor ::
-  (Ord n, Show n, Monoid t, TextWidth t, Z.GenericTextZipper t, Show t) =>
+  (Ord n, Show n) =>
   -- | The content drawing function
-  ([t] -> Widget n) ->
+  ([HighlightedText] -> Widget n) ->
   -- | Whether the editor has focus. It will report a cursor
   -- position if and only if it has focus.
   Bool ->
   -- | The editor.
-  Editor t n ->
+  Editor n ->
   Widget n
 renderEditor draw foc editor =
   let z = editContents editor
@@ -114,7 +113,7 @@ renderEditor draw foc editor =
 handleEditorEvent ::
   (Eq n) =>
   BrickEvent n e ->
-  EventM n (Editor HighlightedText n) ()
+  EventM n (Editor n) ()
 handleEditorEvent e = do
   ed <- get
   let f = case e of
