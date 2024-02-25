@@ -39,13 +39,13 @@ data Name
   | EditLines
   deriving (Ord, Show, Eq)
 
-newtype St = St
-  { _edit :: E.Editor HighlightedText Name
+newtype State = State
+  { _edit :: C.Editor HighlightedText Name
   }
 
-makeLenses ''St
+makeLenses ''State
 
-drawUI :: Int -> Int -> St -> [T.Widget Name]
+drawUI :: Int -> Int -> State -> [T.Widget Name]
 drawUI displayLines displayColumns st = [ui]
   where
     e = renderWithLineNumbers (st ^. edit)
@@ -84,7 +84,7 @@ drawUI displayLines displayColumns st = [ui]
 -- 1@ line numbers for a viewport height of @K@. That's more involved,
 -- so I didn't do it here, but that would be the way to go for a Real
 -- Application.
-renderWithLineNumbers :: E.Editor HighlightedText Name -> T.Widget Name
+renderWithLineNumbers :: C.Editor HighlightedText Name -> T.Widget Name
 renderWithLineNumbers editor =
   lineNumbersVp <+> editorVp
   where
@@ -105,9 +105,9 @@ renderWithLineNumbers editor =
       | otherwise =
           id
     numbers = [1 .. h]
-    contents = E.getEditContents editor
+    contents = C.getEditContents editor
     h = length contents
-    curLine = fst $ E.getCursorPosition editor
+    curLine = fst $ C.getCursorPosition editor
     maxNumWidth = length $ show h
 
 highlightedLine :: HighlightedText -> T.Widget Name
@@ -122,15 +122,15 @@ withHighlight (highlightAttribute, content) = withAttr (highlight highlightAttri
         Title -> A.attrName "title"
         Body -> A.attrName "body"
 
-event :: T.BrickEvent Name e -> T.EventM Name St ()
+event :: T.BrickEvent Name e -> T.EventM Name State ()
 event (T.VtyEvent (V.EvKey V.KEsc [])) =
   M.halt
 event ev = do
   zoom edit $ C.handleEditorEvent ev
 
-initialState :: HighlightedText -> St
+initialState :: HighlightedText -> State
 initialState content =
-  St (E.editor Edit Nothing content)
+  State (C.editor Edit Nothing content)
 
 lineNumberAttr :: A.AttrName
 lineNumberAttr = A.attrName "lineNumber"
@@ -149,7 +149,7 @@ vAttributes =
       (A.attrName "title", fg V.red)
     ]
 
-vEditor :: M.App St e Name
+vEditor :: M.App State e Name
 vEditor =
   M.App
     { M.appDraw = drawUI 100 200,
