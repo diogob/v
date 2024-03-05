@@ -16,7 +16,7 @@ import qualified Data.Text.Zipper.Generic.Words as Z
 import Data.Tuple (swap)
 import Graphics.Vty (Event (..), Key (..), Modifier (..))
 import qualified Graphics.Vty as V
-import HighlightedText (HighlightAttribute (Body, Title), HighlightedText (HighlightedText), withHighlightedTitleFromString)
+import HighlightedText (HighlightAttribute (Body, Title), HighlightedText (HighlightedText))
 import qualified Parsers.MiniML.Lexer as MML
 import qualified Parsers.MiniML.Parser as MML
 import System.IO (hPrint, hPutStrLn, stderr)
@@ -143,13 +143,8 @@ renderWithLineNumbers editor =
   lineNumbersVp <+> editorVp
   where
     lineNumbersVp = hLimit (maxNumWidth + 1) $ viewport EditLines Vertical body
-    highlightTitle :: [HighlightedText] -> Widget n
-    highlightTitle li =
-      let highlightText = withHighlightedTitleFromString li
-          highlightedLines = highlightedLine <$> highlightText
-       in vBox highlightedLines
-
-    editorVp = renderEditor highlightTitle True editor
+    drawText li = vBox $ highlightedLine <$> li
+    editorVp = renderEditor drawText True editor
     body = withDefAttr lineNumberAttr $ vBox numWidgets
     numWidgets = mkNumWidget <$> numbers
     mkNumWidget i = maybeVisible i $ str $ show i
