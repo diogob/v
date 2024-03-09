@@ -46,6 +46,7 @@ library
                         , brick         ^>=2.1.1  
                         , vty           ^>=6.1
                         , array         ^>=0.5.5.0
+                        , timestats
 
 executable v
     import:           warnings
@@ -68,6 +69,7 @@ executable v
                     , bytestring    ^>= 0.11.5
                     , text          ^>= 2.0.2
                     , text-zipper   ^>= 0.13
+                    , timestats
                     , v
 
     hs-source-dirs:   app

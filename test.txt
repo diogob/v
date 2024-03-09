@@ -1,0 +1,7 @@
+            Reading file: 0.000s  count:   1
+        Render editor VP: 0.000s  count: 178
+Render with line numbers: 0.000s  count: 178
+               applyEdit: 0.000s  count: 177
+                  editFn: 0.000s  count: 177
+       handleEditorEvent: 0.001s  count: 177
+

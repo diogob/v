@@ -5,8 +5,10 @@ module Main (main) where
 import qualified Brick as B
 import qualified Brick.Widgets.Center as B
 import Control.Monad (void)
+import Control.Monad.IO.Class (MonadIO (liftIO))
 import qualified CustomEditor as C
 import Data.String (fromString)
+import qualified Debug.TimeStats as TS
 import qualified Graphics.Vty as V
 import HighlightedText
 import Lens.Micro
@@ -50,6 +52,9 @@ main :: IO ()
 main = do
   args <- getArgs
   content <- case args of
-    [path] -> readFile path
+    [path] -> TS.measureM "Reading file" $ readFile path
     _ -> pure ""
   void $ B.defaultMain editorApp $ initialState (fromString content)
+  liftIO $ print "Exit and printing stats..."
+  TS.printTimeStats
+  liftIO $ print "Bye"

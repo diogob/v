@@ -14,6 +14,8 @@ import qualified Data.Text.Zipper as Z hiding (textZipper)
 import qualified Data.Text.Zipper.Generic as Z
 import qualified Data.Text.Zipper.Generic.Words as Z
 import Data.Tuple (swap)
+import Data.Type.Equality (apply)
+import qualified Debug.TimeStats as TS
 import Graphics.Vty (Event (..), Key (..), Modifier (..))
 import qualified Graphics.Vty as V
 import HighlightedText (HighlightAttribute (Body, Title), HighlightedText (HighlightedText))
@@ -140,7 +142,7 @@ lineNumberAttr = attrName "lineNumber"
 -- Application.
 renderWithLineNumbers :: Editor Name -> Widget Name
 renderWithLineNumbers editor =
-  lineNumbersVp <+> editorVp
+  TS.measurePure "Render with line numbers" $ lineNumbersVp <+> (TS.measurePure "Render editor VP" editorVp)
   where
     lineNumbersVp = hLimit (maxNumWidth + 1) $ viewport EditLines Vertical body
     drawText li = vBox $ highlightedLine <$> li
@@ -203,9 +205,9 @@ handleEditorEvent ::
   (Eq n) =>
   BrickEvent n e ->
   EventM n (Editor n) ()
-handleEditorEvent e = do
+handleEditorEvent e = TS.measureM "handleEditorEvent" $ do
   ed <- get
-  let f = case e of
+  let editFn = TS.measurePure "editFn" $ case e of
         VtyEvent ev ->
           handleVtyEvent ev
         MouseDown n _ _ (Location pos)
@@ -240,16 +242,16 @@ handleEditorEvent e = do
         EvKey (KChar '<') [MMeta] -> Z.gotoBOF
         EvKey (KChar '>') [MMeta] -> Z.gotoEOF
         _anyOtherKey -> id
-  let newEd = applyEdit f ed
+  let newEd = TS.measurePure "applyEdit" $ applyEdit editFn ed
       allLines = Z.getText $ editContents newEd
-      fullContent = unlines $ Z.toList <$> allLines
-      ast = MML.runAlex (fromString fullContent) MML.parseMiniML
-      tokens = MML.scanMany $ fromString fullContent
-  liftIO $ hPutStrLn stderr "==============Tokens===================="
-  liftIO $ hPrint stderr tokens
-  liftIO $ hPutStrLn stderr "================AST====================="
-  liftIO $ hPrint stderr ast
-  liftIO $ hPutStrLn stderr "========================================"
+      fullContent = TS.measurePure "fullContent" $ unlines $ Z.toList <$> allLines
+      ast = TS.measurePure "ast" $ MML.runAlex (fromString fullContent) MML.parseMiniML
+      tokens = TS.measurePure "tokens" $ MML.scanMany $ fromString fullContent
+  -- liftIO $ hPutStrLn stderr "==============Tokens===================="
+  -- liftIO $ hPrint stderr tokens
+  -- liftIO $ hPutStrLn stderr "================AST====================="
+  -- liftIO $ hPrint stderr ast
+  -- liftIO $ hPutStrLn stderr "========================================"
   put newEd
 
 -- private
