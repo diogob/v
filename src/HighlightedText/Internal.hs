@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module HighlightedText.Internal
@@ -15,17 +16,23 @@ module HighlightedText.Internal
   )
 where
 
+import Control.DeepSeq
 import Data.List (foldl', singleton)
 import Data.String (IsString (..))
+import GHC.Generics (Generic)
 import Prelude hiding (drop, init, last, length, lines, null, take)
 import qualified Prelude as P
 
 data HighlightAttribute = Title | Body
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
 
 -- perhaps we should create a monoid instance for this and create a TextZipper over it
 newtype HighlightedText = HighlightedText [(HighlightAttribute, String)]
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
+
+instance NFData HighlightedText
+
+instance NFData HighlightAttribute
 
 instance IsString HighlightedText where
   fromString = HighlightedText . singleton . (,) Body

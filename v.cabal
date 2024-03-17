@@ -47,6 +47,7 @@ library
                         , vty           ^>=6.1
                         , array         ^>=0.5.5.0
                         , timestats
+                        , deepseq
 
 executable v
     import:           warnings
@@ -89,6 +90,21 @@ test-suite v-test
                        , brick         ^>=2.1.1  
                        , v
     ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+
+benchmark bench-text-zipper
+  main-is:        BenchTextZipper.hs
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: benchmark
+  build-depends:  base
+                  , v
+                  , text-zipper
+                  , tasty-bench
+                  , text-rope-zipper
+                  , deepseq
+  ghc-options:    "-with-rtsopts=-A32m"
+  if impl(ghc >= 8.6)
+    ghc-options: -fproc-alignment=64
+  default-extensions: OverloadedStrings, LambdaCase
 
 source-repository head
   type:     git
