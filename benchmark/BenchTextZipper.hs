@@ -1,5 +1,7 @@
 import Control.DeepSeq
 import Data.Foldable (Foldable (foldl'))
+import Data.List.NonEmpty (NonEmpty ((:|)))
+import qualified Data.List.NonEmpty as N
 import Data.String (IsString (fromString))
 import qualified Data.Text.Lazy.Zipper
 import qualified Data.Text.Rope.Zipper as R
@@ -9,7 +11,11 @@ import qualified HighlightedText as H
 import qualified HighlightedText.Internal as H
 import Test.Tasty.Bench
 
-testContent = "This is just a simple \ntest with 2 lines"
+[testContent, testContent2x, testContent4X] = fmap produceContent [256, 512, 1024]
+  where
+    produceContent size = foldl' (<>) "" (N.take size infiniteContent)
+    infiniteContent :: NonEmpty String
+    infiniteContent = "This is just a simple \ntest with line breaks" :| repeat "This is just a simple \ntest with line breaks"
 
 testHZipper = H.highlightedZipper [fromString testContent] Nothing
 
