@@ -7,23 +7,16 @@ import qualified Data.Text.Lazy.Zipper
 import qualified Data.Text.Rope.Zipper as R
 import Data.Text.Zipper (insertChar)
 import qualified Data.Text.Zipper as Z
+import HighlightedText (HighlightedText (HighlightedText))
 import qualified HighlightedText as H
 import qualified HighlightedText.Internal as H
 import Test.Tasty.Bench
 
-[testContent, testContent2x, testContent4X] = fmap produceContent [256, 512, 1024]
+[testContent, testContent2x, testContent4x] = fmap produceContent [256, 512, 1024]
   where
     produceContent size = foldl' (<>) "" (N.take size infiniteContent)
     infiniteContent :: NonEmpty String
     infiniteContent = "This is just a simple \ntest with line breaks" :| repeat "This is just a simple \ntest with line breaks"
-
-testHZipper = H.highlightedZipper [fromString testContent] Nothing
-
-testTZipper = Z.textZipper [fromString testContent] Nothing
-
-testSZipper = Z.stringZipper [fromString testContent] Nothing
-
-testRZipper = fromString testContent :: R.RopeZipper
 
 instance NFData R.RopeZipper
 
@@ -35,21 +28,31 @@ insertChars = flip $ foldl' (flip Z.insertChar)
 insertRChars :: [Char] -> R.RopeZipper -> R.RopeZipper
 insertRChars = flip $ foldl' (flip R.insertChar)
 
+benchAll (highlightedBench, textBench, ropeBench, stringBench) =
+  [ bench "HighlightedText" $ nf highlightedBench initialHZipper,
+    bench "Text" $ nf textBench initialTZipper,
+    bench "Rope" $ nf ropeBench initialRZipper,
+    bench "String" $ nf stringBench initialSZipper
+  ]
+  where
+    initialHZipper = H.highlightedZipper [fromString testContent] Nothing
+    initialTZipper = Z.textZipper [fromString testContent] Nothing
+    initialSZipper = Z.stringZipper [fromString testContent] Nothing
+    initialRZipper = fromString testContent :: R.RopeZipper
+
 main :: IO ()
 main =
   defaultMain
     [ bgroup
         "Identity"
-        [ bench "HighlightedText" $ nf id testHZipper,
-          bench "Text" $ nf id testTZipper,
-          bench "Rope" $ nf id testRZipper,
-          bench "String" $ nf id testSZipper
-        ],
+        $ benchAll (id, id, id, id),
       bgroup
-        "Append"
-        [ bench "HighlightedText" $ nf (insertChars testContent) testHZipper,
-          bench "Text" $ nf (insertChars testContent) testTZipper,
-          bench "Rope" $ nf (insertRChars testContent) testRZipper,
-          bench "String" $ nf (insertChars testContent) testSZipper
-        ]
+        "Append 1X"
+        $ benchAll (insertChars testContent, insertChars testContent, insertRChars testContent, insertChars testContent),
+      bgroup
+        "Append 2X"
+        $ benchAll (insertChars testContent2x, insertChars testContent2x, insertRChars testContent2x, insertChars testContent2x),
+      bgroup
+        "Append 4X"
+        $ benchAll (insertChars testContent4x, insertChars testContent4x, insertRChars testContent4x, insertChars testContent4x)
     ]
