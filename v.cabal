@@ -101,6 +101,7 @@ benchmark bench-text-zipper
                   , tasty-bench
                   , text-rope-zipper
                   , deepseq
+                  , vector
   ghc-options:    "-with-rtsopts=-A32m"
   if impl(ghc >= 8.6)
     ghc-options: -fproc-alignment=64
