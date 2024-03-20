@@ -58,5 +58,14 @@ main =
         $ benchAll (insertChars testContent2x, insertChars testContent2x, insertRChars testContent2x, insertChars testContent2x, insertChars testContent2x),
       bgroup
         "Append 4X"
-        $ benchAll (insertChars testContent4x, insertChars testContent4x, insertRChars testContent4x, insertChars testContent4x, insertChars testContent4x)
+        $ benchAll (insertChars testContent4x, insertChars testContent4x, insertRChars testContent4x, insertChars testContent4x, insertChars testContent4x),
+      bgroup
+        "gotoBOF"
+        $ benchAll
+          ( Z.gotoBOF,
+            Z.gotoBOF,
+            R.moveToLineStart . R.moveToFirstLine,
+            Z.gotoBOF,
+            Z.gotoBOF
+          )
     ]
