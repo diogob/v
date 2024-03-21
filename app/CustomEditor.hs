@@ -10,6 +10,8 @@ import Brick.Widgets.Core
 import Brick.Widgets.Edit (DecodeUtf8 (..))
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.String (fromString)
+import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Text.Zipper as Z hiding (textZipper)
 import qualified Data.Text.Zipper.Generic as Z
 import qualified Data.Text.Zipper.Generic.Words as Z
@@ -30,7 +32,7 @@ data Name
 
 data Editor n = Editor
   { -- | The contents of the editor
-    editContents :: Z.TextZipper HighlightedText,
+    editContents :: Z.TextZipper Text,
     -- | The name of the editor
     editorName :: n
   }
@@ -55,7 +57,8 @@ vAttributes =
       (editFocusedAttr, V.black `on` V.linearColor (100 :: Integer) 100 100),
       (lineNumberAttr, fg V.cyan),
       (currentLineNumberAttr, V.defAttr `V.withStyle` V.bold),
-      (attrName "title", fg V.red)
+      (attrName "title", fg V.red),
+      (attrName "body", fg V.black)
     ]
 
 -- | Construct an editor over 'String' values
@@ -66,7 +69,7 @@ editor ::
   -- means no limit)
   Maybe Int ->
   -- | The initial content
-  HighlightedText ->
+  Text ->
   Editor n
 editor name limit s = Editor (Z.textZipper (Z.lines s) limit) name
 
@@ -78,7 +81,7 @@ editor name limit s = Editor (Z.textZipper (Z.lines s) limit) name
 -- the line limit.
 applyEdit ::
   -- | The 'Z.TextZipper' editing transformation to apply
-  (Z.TextZipper HighlightedText -> Z.TextZipper HighlightedText) ->
+  (Z.TextZipper Text -> Z.TextZipper Text) ->
   Editor n ->
   Editor n
 applyEdit f (Editor z name) =
@@ -94,7 +97,7 @@ editFocusedAttr :: AttrName
 editFocusedAttr = editAttr <> attrName "focused"
 
 -- | Get the contents of the editor.
-getEditContents :: Editor n -> [HighlightedText]
+getEditContents :: Editor n -> [Text]
 getEditContents e = Z.getText $ editContents e
 
 -- | Get the cursor position of the editor (row, column).
@@ -142,10 +145,9 @@ lineNumberAttr = attrName "lineNumber"
 -- Application.
 renderWithLineNumbers :: Editor Name -> Widget Name
 renderWithLineNumbers editor =
-  TS.measurePure "Render with line numbers" $ lineNumbersVp <+> (TS.measurePure "Render editor VP" editorVp)
+  TS.measurePure "Render with line numbers" $ (TS.measurePure "Render editor VP" editorVp)
   where
     lineNumbersVp = hLimit (maxNumWidth + 1) $ viewport EditLines Vertical body
-    drawText li = vBox $ highlightedLine <$> li
     editorVp = renderEditor drawText True editor
     body = withDefAttr lineNumberAttr $ vBox numWidgets
     numWidgets = mkNumWidget <$> numbers
@@ -160,6 +162,7 @@ renderWithLineNumbers editor =
     h = length contents
     curLine = fst $ getCursorPosition editor
     maxNumWidth = length $ show h
+    drawText = withAttr (attrName "title") . txt . T.unlines
 
 highlightedLine :: HighlightedText -> Widget n
 highlightedLine (HighlightedText []) = str "\n"
@@ -178,7 +181,7 @@ withHighlight (highlightAttribute, content) = withAttr (highlight highlightAttri
 renderEditor ::
   (Ord n, Show n) =>
   -- | The content drawing function
-  ([HighlightedText] -> Widget n) ->
+  ([Text] -> Widget n) ->
   -- | Whether the editor has focus. It will report a cursor
   -- position if and only if it has focus.
   Bool ->

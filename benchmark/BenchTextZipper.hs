@@ -67,5 +67,14 @@ main =
             R.moveToLineStart . R.moveToFirstLine,
             Z.gotoBOF,
             Z.gotoBOF
+          ),
+      bgroup "Current Position" $ benchAll (Z.currentChar, Z.currentChar, R.cursor, Z.currentChar, Z.currentChar),
+      bgroup "Current Position 4X" $
+        benchAll
+          ( Z.currentChar . insertChars testContent4x,
+            Z.currentChar . insertChars testContent4x,
+            R.cursor . insertRChars testContent4x,
+            Z.currentChar . insertChars testContent4x,
+            Z.currentChar . insertChars testContent4x
           )
     ]

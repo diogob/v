@@ -8,6 +8,7 @@ import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import qualified CustomEditor as C
 import Data.String (fromString)
+import Data.Text (Text)
 import qualified Debug.TimeStats as TS
 import qualified Graphics.Vty as V
 import HighlightedText
@@ -34,7 +35,7 @@ event (B.VtyEvent (V.EvKey V.KEsc [])) =
 event ev = do
   zoom edit $ C.handleEditorEvent ev
 
-initialState :: HighlightedText -> State
+initialState :: Text -> State
 initialState content =
   State (C.editor C.Edit Nothing content)
 
