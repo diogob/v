@@ -58,9 +58,8 @@ main = do
     [path] -> fromString <$> readFile path :: IO T.Text
     _ -> pure ""
   vty <- mkVty defaultConfig
-  let line0 = text' (defAttr `withForeColor` green) <$> T.lines content
-      Picture {picLayers = layers, picBackground = bg} = picForImage $ vertCat line0
-      pic = Picture {picLayers = layers, picBackground = bg, picCursor = Cursor 0 0}
+  let lines = vertCat $ text' (defAttr `withForeColor` green) <$> T.lines content
+      pic = Picture {picLayers = [lines], picBackground = ClearBackground, picCursor = Cursor 0 0}
 
   update vty pic
   e <- nextEvent vty
