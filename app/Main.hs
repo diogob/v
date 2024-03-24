@@ -59,7 +59,9 @@ main = do
     _ -> pure ""
   vty <- mkVty defaultConfig
   let line0 = text' (defAttr `withForeColor` green) <$> T.lines content
-      pic = picForImage $ vertCat line0
+      Picture {picLayers = layers, picBackground = bg} = picForImage $ vertCat line0
+      pic = Picture {picLayers = layers, picBackground = bg, picCursor = Cursor 0 0}
+
   update vty pic
   e <- nextEvent vty
   shutdown vty
