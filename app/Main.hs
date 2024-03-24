@@ -9,11 +9,11 @@ import Control.Monad.IO.Class (MonadIO (liftIO))
 import qualified CustomEditor as C
 import Data.String (fromString)
 import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Debug.TimeStats as TS
 import Graphics.Vty
 import qualified Graphics.Vty as V
 import Graphics.Vty.Platform.Unix (mkVty)
-import HighlightedText
 import Lens.Micro
 import Lens.Micro.Mtl
 import Lens.Micro.TH
@@ -55,10 +55,10 @@ main :: IO ()
 main = do
   args <- getArgs
   content <- case args of
-    [path] -> TS.measureM "Reading file" $ readFile path
+    [path] -> fromString <$> readFile path :: IO T.Text
     _ -> pure ""
   vty <- mkVty defaultConfig
-  let line0 = string (defAttr `withForeColor` green) <$> lines content
+  let line0 = text' (defAttr `withForeColor` green) <$> T.lines content
       pic = picForImage $ vertCat line0
   update vty pic
   e <- nextEvent vty
