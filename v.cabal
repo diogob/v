@@ -64,6 +64,7 @@ executable v
     build-depends:    base          ^>=4.18.1.0
                     , brick         ^>=2.1.1  
                     , vty           ^>=6.1
+                    , vty-unix      ^>=0.2
                     , microlens     ^>= 0.4.13
                     , microlens-mtl ^>= 0.2.0
                     , microlens-th  ^>= 0.4.3

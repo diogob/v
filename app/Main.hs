@@ -10,7 +10,9 @@ import qualified CustomEditor as C
 import Data.String (fromString)
 import Data.Text (Text)
 import qualified Debug.TimeStats as TS
+import Graphics.Vty
 import qualified Graphics.Vty as V
+import Graphics.Vty.Platform.Unix (mkVty)
 import HighlightedText
 import Lens.Micro
 import Lens.Micro.Mtl
@@ -51,6 +53,20 @@ editorApp =
 
 main :: IO ()
 main = do
+  args <- getArgs
+  content <- case args of
+    [path] -> TS.measureM "Reading file" $ readFile path
+    _ -> pure ""
+  vty <- mkVty defaultConfig
+  let line0 = string (defAttr `withForeColor` green) <$> lines content
+      pic = picForImage $ vertCat line0
+  update vty pic
+  e <- nextEvent vty
+  shutdown vty
+  print ("Last event was: " ++ show e)
+
+oldmain :: IO ()
+oldmain = do
   args <- getArgs
   content <- case args of
     [path] -> TS.measureM "Reading file" $ readFile path
